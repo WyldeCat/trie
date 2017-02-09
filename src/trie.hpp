@@ -3,10 +3,13 @@
 
 #include <vector>
 #include <map>
+#include <queue>
+#include <stack>
 
 template<typename T>
 class trie
 {
+  class iterator;
   class trie_node
   {
   public:
@@ -32,10 +35,11 @@ class trie
     }
     iterator(trie_node *node);
     iterator();
-  private:
+  protected:
     trie_node* it;
-    iterator& operator++();
-    iterator  operator++(int);
+  private:
+    iterator& operator++();    // Overloading prefix increment operator
+    iterator  operator++(int); // Overloading postfix increment operator
  
     friend class trie<T>;
   };
@@ -43,15 +47,31 @@ class trie
   class bfs_iterator: public iterator
   {
   public:
+    typedef iterator super;
+    bfs_iterator();
+
+    bfs_iterator(const iterator &_it);
+    bfs_iterator& operator=(const iterator &_it);
+
     bfs_iterator& operator++();
     bfs_iterator  operator++(int);
+  private:
+    std::queue<trie_node*> queue;
   };
 
   class dfs_iterator: public iterator
   {
   public:
+    typedef iterator super;
+    dfs_iterator();
+
+    dfs_iterator(const iterator &it); 
+    dfs_iterator& operator=(const iterator &it);
+
     dfs_iterator& operator++();
     dfs_iterator  operator++(int);
+  private:
+    std::stack<trie_node*> stack;
   };
 
 public:

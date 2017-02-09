@@ -57,18 +57,110 @@ typename trie<T>::iterator trie<T>::find(trie<T>::trie_node *node, char *str)
 
 /* -----------trie::iterator----------- */
 
-template<typename T>
-trie<T>::iterator::iterator()
+template<typename T> trie<T>::iterator::iterator()
 {
   it = NULL;
 }
-
-template<typename T>
-trie<T>::iterator::iterator(trie<T>::trie_node *node)
+template<typename T> trie<T>::iterator::iterator(trie<T>::trie_node *node)
 {
   it = node;
 }
 
+/* -----------trie::bfs_iterator----------- */
+
+template<typename T> trie<T>::bfs_iterator::bfs_iterator()
+{
+  super::iterator();
+}
+
+template<typename T> trie<T>::bfs_iterator::bfs_iterator(const trie<T>::iterator &_it)
+{
+  this->it = _it.it;
+  queue.push(this->it);
+}
+
+template<typename T> 
+typename trie<T>::bfs_iterator& trie<T>::bfs_iterator::operator=(const trie<T>::iterator &_it)
+{
+  this->it = _it.it;
+  queue.clear();
+  queue.push(this->it);
+}
+
+// prefix
+template<typename T>
+typename trie<T>::bfs_iterator& trie<T>::bfs_iterator::operator++()
+{
+  if(queue.empty())
+  {
+    this->it = NULL;
+    return *this;
+  }
+  trie_node *front = queue.front();
+  queue.pop();
+
+  for(std::pair<char,trie_node*> pair: front->children) queue.push(pair.second);
+  this->it = queue.front();
+
+  return *this;
+}
+
+// postfix
+template<typename T>
+typename trie<T>::bfs_iterator trie<T>::bfs_iterator::operator++(int)
+{
+  bfs_iterator temp = *this;
+  ++*this;
+  return temp;
+}
+
+/* -----------trie::dfs_iterator----------- */
+
+template<typename T> trie<T>::dfs_iterator::dfs_iterator()
+{
+  super::iterator();
+}
+
+template<typename T> trie<T>::dfs_iterator::dfs_iterator(const trie<T>::iterator &_it)
+{
+  this->it = _it.it;
+  stack.push(this->it);
+}
+
+template<typename T> 
+typename trie<T>::dfs_iterator& trie<T>::dfs_iterator::operator=(const trie<T>::iterator &_it)
+{
+  this->it = _it.it;
+  stack.clear();
+  stack.push(this->it);
+}
+
+// prefix
+template<typename T>
+typename trie<T>::dfs_iterator& trie<T>::dfs_iterator::operator++()
+{
+  if(stack.empty())
+  {
+    this->it = NULL;
+    return *this;
+  }
+  trie_node *top = stack.top();
+  stack.pop();
+
+  for(auto it = top->children.rbegin(); it != top->children.rend(); ++it) stack.push(it->second);
+  this->it = stack.top();
+
+  return *this;
+}
+
+// postfix
+template<typename T>
+typename trie<T>::dfs_iterator trie<T>::dfs_iterator::operator++(int)
+{
+  dfs_iterator temp = *this;
+  ++*this;
+  return temp;
+}
 
 /* -----------trie::trie_node----------- */
 
