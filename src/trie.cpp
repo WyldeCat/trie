@@ -1,6 +1,7 @@
 #include "trie.hpp"
-
+#include <stdio.h>
 /* -----------trie----------- */
+
 
 template<typename T> 
 trie<T>::trie()
@@ -9,13 +10,13 @@ trie<T>::trie()
 }
 
 template<typename T> 
-int trie<T>::insert_node(char *str,T *info)
+int trie<T>::insert(char *str,T info)
 {
-  insert_node(root, str, info);
+  return insert(root, str, info);
 }
 
 template<typename T> 
-int trie<T>::insert_node(trie_node* node, char *str, T *info)
+int trie<T>::insert(trie_node* node, char *str, T info)
 {
   char val = *str;    
 
@@ -31,7 +32,7 @@ int trie<T>::insert_node(trie_node* node, char *str, T *info)
     node->children[val]->set_val(val);
   }
 
-  return insert_node(node->children[val], str+1, info);
+  return insert(node->children[val], str+1, info);
 }
 
 template<typename T> 
@@ -68,11 +69,7 @@ template<typename T> trie<T>::iterator::iterator(trie<T>::trie_node *node)
 
 /* -----------trie::bfs_iterator----------- */
 
-template<typename T> trie<T>::bfs_iterator::bfs_iterator()
-{
-  super::iterator();
-}
-
+template<typename T> trie<T>::bfs_iterator::bfs_iterator():iterator(){}
 template<typename T> trie<T>::bfs_iterator::bfs_iterator(const trie<T>::iterator &_it)
 {
   this->it = _it.it;
@@ -83,8 +80,10 @@ template<typename T>
 typename trie<T>::bfs_iterator& trie<T>::bfs_iterator::operator=(const trie<T>::iterator &_it)
 {
   this->it = _it.it;
-  queue.clear();
+  while(!queue.empty()) queue.pop();
   queue.push(this->it);
+
+  return *this;
 }
 
 // prefix
@@ -96,11 +95,12 @@ typename trie<T>::bfs_iterator& trie<T>::bfs_iterator::operator++()
     this->it = NULL;
     return *this;
   }
+
   trie_node *front = queue.front();
   queue.pop();
 
   for(std::pair<char,trie_node*> pair: front->children) queue.push(pair.second);
-  this->it = queue.front();
+  this->it = queue.empty() ? NULL : queue.front();
 
   return *this;
 }
@@ -116,11 +116,7 @@ typename trie<T>::bfs_iterator trie<T>::bfs_iterator::operator++(int)
 
 /* -----------trie::dfs_iterator----------- */
 
-template<typename T> trie<T>::dfs_iterator::dfs_iterator()
-{
-  super::iterator();
-}
-
+template<typename T> trie<T>::dfs_iterator::dfs_iterator():iterator(){}
 template<typename T> trie<T>::dfs_iterator::dfs_iterator(const trie<T>::iterator &_it)
 {
   this->it = _it.it;
@@ -131,8 +127,10 @@ template<typename T>
 typename trie<T>::dfs_iterator& trie<T>::dfs_iterator::operator=(const trie<T>::iterator &_it)
 {
   this->it = _it.it;
-  stack.clear();
+  while(!stack.empty()) stack.pop();
   stack.push(this->it);
+
+  return *this;
 }
 
 // prefix
@@ -144,11 +142,12 @@ typename trie<T>::dfs_iterator& trie<T>::dfs_iterator::operator++()
     this->it = NULL;
     return *this;
   }
+
   trie_node *top = stack.top();
   stack.pop();
 
   for(auto it = top->children.rbegin(); it != top->children.rend(); ++it) stack.push(it->second);
-  this->it = stack.top();
+  this->it = stack.empty() ? NULL : stack.top();
 
   return *this;
 }
@@ -165,7 +164,7 @@ typename trie<T>::dfs_iterator trie<T>::dfs_iterator::operator++(int)
 /* -----------trie::trie_node----------- */
 
 template<typename T>
-const std::vector<T*>& trie<T>::trie_node::get_infos()
+const std::vector<T>& trie<T>::trie_node::get_infos()
 {
   return infos;
 }
@@ -181,3 +180,5 @@ void trie<T>::trie_node::set_val(char _val)
 {
   val = _val;
 }
+
+template class trie<int>;
