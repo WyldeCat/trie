@@ -1,7 +1,9 @@
-#include "trie.hpp"
-#include <stdio.h>
+#ifndef _TRIE_CPP_
+#define _TRIE_CPP_
+
 /* -----------trie----------- */
 
+#include "trie.hpp"
 
 template<typename T> 
 trie<T>::trie()
@@ -181,4 +183,4 @@ void trie<T>::trie_node::set_val(char _val)
   val = _val;
 }
 
-template class trie<int>;
+#endif

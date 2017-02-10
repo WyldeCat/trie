@@ -110,4 +110,6 @@ private:
   trie_node* root;
 };
 
+#include "trie.cpp"
+
 #endif
