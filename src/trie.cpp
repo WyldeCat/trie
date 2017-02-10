@@ -9,6 +9,8 @@ template<typename T>
 trie<T>::trie()
 {
   root = new trie_node();
+  _end.it = NULL;
+  _start.it = root;
 }
 
 template<typename T> 
@@ -32,6 +34,7 @@ int trie<T>::insert(trie_node* node, char *str, T info)
   {
     node->children[val] = new trie_node();
     node->children[val]->set_val(val);
+    node->children[val]->parent = node;
   }
 
   return insert(node->children[val], str+1, info);
@@ -44,18 +47,35 @@ typename trie<T>::iterator trie<T>::end()
 }
 
 template<typename T>
-typename trie<T>::iterator trie<T>::find(char *str)
+typename trie<T>::iterator trie<T>::start()
 {
-  return find(root, str); 
+  return _start;
 }
 
 template<typename T>
-typename trie<T>::iterator trie<T>::find(trie<T>::trie_node *node, char *str)
+typename trie<T>::iterator trie<T>::find(char *str)
+{
+  trie<T>::iterator it;
+  it.caption = std::string(str);
+  find(root, str, it); 
+  
+  return it;
+}
+
+template<typename T>
+void trie<T>::find(trie<T>::trie_node *node, char *str, trie<T>::iterator &it)
 {
   char val = *str;
-  if(val == 0) return iterator(node);
-  if(node->children.find(val) == node->children.end()) return _end;
-  return find(node->children[val], str+1);
+  if(val == 0) 
+  {
+    it.it = node;
+    return;
+  }
+  if(node->children.find(val) == node->children.end()) {
+    it.it = NULL;
+    it.caption = std::string();
+  }
+  find(node->children[val], str+1, it);
 }
 
 /* -----------trie::iterator----------- */
@@ -64,27 +84,45 @@ template<typename T> trie<T>::iterator::iterator()
 {
   it = NULL;
 }
-template<typename T> trie<T>::iterator::iterator(trie<T>::trie_node *node)
-{
-  it = node;
-}
 
+template<typename T>
+const std::string& trie<T>::iterator::get_caption()
+{
+  return this->caption;
+}
 /* -----------trie::bfs_iterator----------- */
+
+template<typename T>
+const std::string& trie<T>::bfs_iterator::get_caption()
+{
+  this->caption = std::string();
+  trie_node* it = this->it;
+  while(1)
+  {
+    this->caption.push_back(it->get_val());
+    if(it == this->start_it) break;
+    it = it->parent;
+  }
+  std::reverse(this->caption.begin(),this->caption.end());
+
+  return this->caption;
+}
 
 template<typename T> trie<T>::bfs_iterator::bfs_iterator():iterator(){}
 template<typename T> trie<T>::bfs_iterator::bfs_iterator(const trie<T>::iterator &_it)
 {
   this->it = _it.it;
+  this->start_it = _it.it;
   queue.push(this->it);
 }
 
 template<typename T> 
 typename trie<T>::bfs_iterator& trie<T>::bfs_iterator::operator=(const trie<T>::iterator &_it)
-{
+{ 
   this->it = _it.it;
+  this->start_it = _it.it;
   while(!queue.empty()) queue.pop();
   queue.push(this->it);
-
   return *this;
 }
 
@@ -100,7 +138,6 @@ typename trie<T>::bfs_iterator& trie<T>::bfs_iterator::operator++()
 
   trie_node *front = queue.front();
   queue.pop();
-
   for(std::pair<char,trie_node*> pair: front->children) queue.push(pair.second);
   this->it = queue.empty() ? NULL : queue.front();
 
@@ -122,15 +159,17 @@ template<typename T> trie<T>::dfs_iterator::dfs_iterator():iterator(){}
 template<typename T> trie<T>::dfs_iterator::dfs_iterator(const trie<T>::iterator &_it)
 {
   this->it = _it.it;
-  stack.push(this->it);
+  this->caption = _it.caption;
+  stack.push(std::make_pair(this->it,0));
 }
 
 template<typename T> 
 typename trie<T>::dfs_iterator& trie<T>::dfs_iterator::operator=(const trie<T>::iterator &_it)
 {
   this->it = _it.it;
+  this->caption = _it.caption;
   while(!stack.empty()) stack.pop();
-  stack.push(this->it);
+  stack.push(std::make_pair(this->it,0));
 
   return *this;
 }
@@ -142,14 +181,34 @@ typename trie<T>::dfs_iterator& trie<T>::dfs_iterator::operator++()
   if(stack.empty())
   {
     this->it = NULL;
+    this->caption = std::string();
     return *this;
   }
 
-  trie_node *top = stack.top();
+  trie_node *top = stack.top().first;
+  int level = stack.top().second;
+
   stack.pop();
 
-  for(auto it = top->children.rbegin(); it != top->children.rend(); ++it) stack.push(it->second);
-  this->it = stack.empty() ? NULL : stack.top();
+  for(auto it = top->children.rbegin(); it != top->children.rend(); ++it) 
+    stack.push(std::make_pair(it->second,level+1));
+  
+  if(top->children.empty() && !stack.empty()) 
+  {
+    int loop_cnt = level - stack.top().second + 1;
+    for(int i=0;i<loop_cnt;i++) this->caption.pop_back();
+  }
+
+  if(!stack.empty()) 
+  {
+    this->it = stack.top().first;
+    this->caption.push_back(stack.top().first->get_val());
+  }
+  else 
+  {
+    this->it = NULL;
+    this->caption = std::string();
+  }
 
   return *this;
 }

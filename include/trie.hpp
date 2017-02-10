@@ -12,6 +12,9 @@ class trie
 
 public: 
   class iterator;
+  class bfs_iterator;
+  class dfs_iterator;
+
   class trie_node
   { 
   public:
@@ -21,16 +24,17 @@ public:
 
   private:
     char val;
+    trie_node *parent;
     std::map<char,trie_node*> children;
     std::vector<T> infos;
 
     friend class trie<T>;
     friend class trie<T>::iterator;
+    friend class trie<T>::bfs_iterator;
+    friend class trie<T>::dfs_iterator;
   };
 
 public:
-  class bfs_iterator;
-  class dfs_iterator;
   class iterator
   {
   public:
@@ -38,16 +42,17 @@ public:
     {
       return it;
     }
-    iterator(trie_node *node);
     iterator();
 
     bool operator==(const bfs_iterator& r){ return (this->it == r.it); }
     bool operator==(const dfs_iterator& r){ return (this->it == r.it); }
     bool operator!=(const bfs_iterator& r){ return !(*this == r); }
     bool operator!=(const dfs_iterator& r){ return !(*this == r); }
+    const std::string& get_caption();
 
   protected:
     trie_node* it;
+    std::string caption;
   private:
     iterator& operator++();    // Overloading prefix increment operator
     iterator  operator++(int); // Overloading postfix increment operator
@@ -71,9 +76,11 @@ public:
     bool operator==(const dfs_iterator& r){ return (this->it == r.it); }
     bool operator!=(const iterator& r){ return !(*this == r); }
     bool operator!=(const dfs_iterator& r){ return !(*this == r); }
+    const std::string& get_caption();
 
 
   private:
+    trie_node* start_it;
     std::queue<trie_node*> queue;
   };
 
@@ -95,21 +102,23 @@ public:
     bool operator!=(const bfs_iterator& r){ return !(*this == r); }
 
   private:
-    std::stack<trie_node*> stack;
+    std::stack<std::pair<trie_node*,int>> stack;
   };
 
   trie();
   int insert(char *str, T info);
   iterator find(char *str);
+  trie<T>::iterator start();
   trie<T>::iterator end();
 
 private:
   iterator _end;
+  iterator _start;
   int insert(trie_node *node, char *str, T info);
-  iterator find(trie_node *node, char *str);
+  void find(trie_node *node, char *str, iterator &it);
   trie_node* root;
 };
 
-#include "trie.cpp"
+#include "../src/trie.cpp"
 
 #endif
