@@ -1,2 +1,2 @@
 # trie
-trie data structure
+Trie data structure
