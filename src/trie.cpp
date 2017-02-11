@@ -3,7 +3,7 @@
 
 /* -----------trie----------- */
 
-#include "trie.hpp"
+#include "../include/trie.hpp"
 
 template<typename T> 
 trie<T>::trie()
@@ -100,9 +100,10 @@ const std::string& trie<T>::bfs_iterator::get_caption()
   while(1)
   {
     this->caption.push_back(it->get_val());
-    if(it == this->start_it) break;
     it = it->parent;
+    if(it == NULL) break;
   }
+  this->caption.pop_back();
   std::reverse(this->caption.begin(),this->caption.end());
 
   return this->caption;
@@ -112,7 +113,6 @@ template<typename T> trie<T>::bfs_iterator::bfs_iterator():iterator(){}
 template<typename T> trie<T>::bfs_iterator::bfs_iterator(const trie<T>::iterator &_it)
 {
   this->it = _it.it;
-  this->start_it = _it.it;
   queue.push(this->it);
 }
 
@@ -120,7 +120,6 @@ template<typename T>
 typename trie<T>::bfs_iterator& trie<T>::bfs_iterator::operator=(const trie<T>::iterator &_it)
 { 
   this->it = _it.it;
-  this->start_it = _it.it;
   while(!queue.empty()) queue.pop();
   queue.push(this->it);
   return *this;

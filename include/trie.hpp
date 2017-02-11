@@ -5,6 +5,8 @@
 #include <map>
 #include <queue>
 #include <stack>
+#include <algorithm>
+#include <string>
 
 template<typename T>
 class trie
@@ -80,7 +82,6 @@ public:
 
 
   private:
-    trie_node* start_it;
     std::queue<trie_node*> queue;
   };
 

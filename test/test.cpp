@@ -1,24 +1,27 @@
-#include "../src/trie.hpp"
+#include "../include/trie.hpp"
+
 #include <cstdio>
 
 int main( )
 {
   trie<int> test;
-  char a[5] = "aABC", b[5] = "aDEF", c[2] = "a";
+  char a[5] = "aABC", b[5] = "aDEF", c[3] = "aA";
   int i = 3, j = 5;
 
   test.insert(a,i);
   test.insert(b,j);
 
-  printf("bfs..! ");
+  printf("bfs..!\n");
   for(trie<int>::bfs_iterator it = test.find(c); it != test.end(); ++it) 
-    printf("%c ",it->get_val());
+  {
+    printf("%s\n",it.get_caption().c_str());
+  }
 
-  printf("\ndfs..! ");
+  printf("dfs..!\n");
   for(trie<int>::dfs_iterator it = test.find(c); it != test.end(); ++it) 
-    printf("%c ",it->get_val());
-
-  printf("\n");
+  {
+    printf("%s\n",it.get_caption().c_str());
+  }
 
   return 0;
 }
