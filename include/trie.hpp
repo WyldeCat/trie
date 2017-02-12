@@ -16,6 +16,7 @@ public:
   class iterator;
   class bfs_iterator;
   class dfs_iterator;
+  class trie_internal_node;
 
   class trie_node
   { 
@@ -23,17 +24,25 @@ public:
     char get_val();
     void set_val(char _val);
     const std::vector<T>& get_infos();
+    bool is_internal = false;
 
-  private:
-    char val;
-    trie_node *parent;
-    std::map<char,trie_node*> children;
+    std::map<char,trie_internal_node> children;
+    char val = 0;
+    trie_node(){val='3';}
+
     std::vector<T> infos;
 
     friend class trie<T>;
     friend class trie<T>::iterator;
     friend class trie<T>::bfs_iterator;
     friend class trie<T>::dfs_iterator;
+  };
+
+  class trie_internal_node : public trie_node
+  {
+  public:
+    trie_internal_node(trie_node *_parent):parent(*_parent){ this->is_internal = true;}
+    trie_node &parent; 
   };
 
 public:
@@ -58,7 +67,7 @@ public:
   private:
     iterator& operator++();    // Overloading prefix increment operator
     iterator  operator++(int); // Overloading postfix increment operator
- 
+
     friend class trie<T>;
   };
 
@@ -106,18 +115,19 @@ public:
     std::stack<std::pair<trie_node*,int>> stack;
   };
 
+
   trie();
   int insert(char *str, T info);
   iterator find(char *str);
   trie<T>::iterator begin();
   trie<T>::iterator end();
 
-private:
+public:
   iterator _begin;
   iterator _end;
   int insert(trie_node *node, char *str, T info);
   void find(trie_node *node, char *str, iterator &it);
-  trie_node* root;
+  trie_node root;
 };
 
 #include "../src/trie.cpp"

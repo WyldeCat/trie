@@ -5,18 +5,20 @@
 
 #include "../include/trie.hpp"
 
+
 template<typename T> 
 trie<T>::trie()
 {
-  root = new trie_node();
+  root = trie_node();
   _end.it = NULL;
-  _begin.it = root;
+  _begin.it = &root;
 }
+
 
 template<typename T> 
 int trie<T>::insert(char *str,T info)
 {
-  return insert(root, str, info);
+  return insert(&root, str, info);
 }
 
 template<typename T> 
@@ -30,14 +32,15 @@ int trie<T>::insert(trie_node* node, char *str, T info)
     return 1;
   }
 
-  if(node->children.find(val) == node->children.end())
+  auto ret = node->children.find(val);
+  if(ret == node->children.end())
   {
-    node->children[val] = new trie_node();
-    node->children[val]->set_val(val);
-    node->children[val]->parent = node;
+    node->children.insert(std::make_pair(val, trie_internal_node(node)));
+    ret = node->children.find(val);
+    ret->second.set_val(val);
   }
 
-  return insert(node->children[val], str+1, info);
+  return insert(&ret->second, str+1, info);
 }
 
 template<typename T> 
@@ -47,8 +50,9 @@ typename trie<T>::iterator trie<T>::end()
 }
 
 template<typename T>
-typename trie<T>::iterator trie<T>::start()
+typename trie<T>::iterator trie<T>::begin()
 {
+  _begin.it = &root;
   return _begin;
 }
 
@@ -57,7 +61,7 @@ typename trie<T>::iterator trie<T>::find(char *str)
 {
   trie<T>::iterator it;
   it.caption = std::string(str);
-  find(root, str, it); 
+  find(&root, str, it); 
   
   return it;
 }
@@ -75,7 +79,7 @@ void trie<T>::find(trie<T>::trie_node *node, char *str, trie<T>::iterator &it)
     it.it = NULL;
     it.caption = std::string();
   }
-  find(node->children[val], str+1, it);
+  find(&node->children[val], str+1, it);
 }
 
 /* -----------trie::iterator----------- */
@@ -89,22 +93,23 @@ template<typename T>
 const std::string& trie<T>::iterator::get_caption()
 {
   return this->caption;
-}
-/* -----------trie::bfs_iterator----------- */
+} /* -----------trie::bfs_iterator----------- */
 
 template<typename T>
 const std::string& trie<T>::bfs_iterator::get_caption()
 {
   this->caption = std::string();
-  trie_node* it = this->it;
+  trie_node* node = this->it;
+  
   while(1)
   {
-    this->caption.push_back(it->get_val());
-    it = it->parent;
-    if(it == NULL) break;
+    if(!node->is_internal) break;
+    this->caption.push_back(node->get_val());
+    trie_internal_node *internal_node = (trie_internal_node *)node;
+    node = &internal_node->parent;
   }
-  this->caption.pop_back();
-  std::reverse(this->caption.begin(),this->caption.end());
+  if(!this->caption.empty())
+    std::reverse(this->caption.begin(),this->caption.end());
 
   return this->caption;
 }
@@ -137,7 +142,8 @@ typename trie<T>::bfs_iterator& trie<T>::bfs_iterator::operator++()
 
   trie_node *front = queue.front();
   queue.pop();
-  for(std::pair<char,trie_node*> pair: front->children) queue.push(pair.second);
+  for(auto &pair: front->children) 
+    queue.push(&pair.second);
   this->it = queue.empty() ? NULL : queue.front();
 
   return *this;
@@ -162,7 +168,7 @@ template<typename T> trie<T>::dfs_iterator::dfs_iterator(const trie<T>::iterator
   stack.push(std::make_pair(this->it,0));
 }
 
-template<typename T> 
+  template<typename T> 
 typename trie<T>::dfs_iterator& trie<T>::dfs_iterator::operator=(const trie<T>::iterator &_it)
 {
   this->it = _it.it;
@@ -174,7 +180,7 @@ typename trie<T>::dfs_iterator& trie<T>::dfs_iterator::operator=(const trie<T>::
 }
 
 // prefix
-template<typename T>
+  template<typename T>
 typename trie<T>::dfs_iterator& trie<T>::dfs_iterator::operator++()
 {
   if(stack.empty())
@@ -190,8 +196,8 @@ typename trie<T>::dfs_iterator& trie<T>::dfs_iterator::operator++()
   stack.pop();
 
   for(auto it = top->children.rbegin(); it != top->children.rend(); ++it) 
-    stack.push(std::make_pair(it->second,level+1));
-  
+    stack.push(std::make_pair(&(it->second),level+1));
+
   if(top->children.empty() && !stack.empty()) 
   {
     int loop_cnt = level - stack.top().second + 1;
@@ -213,7 +219,7 @@ typename trie<T>::dfs_iterator& trie<T>::dfs_iterator::operator++()
 }
 
 // postfix
-template<typename T>
+  template<typename T>
 typename trie<T>::dfs_iterator trie<T>::dfs_iterator::operator++(int)
 {
   dfs_iterator temp = *this;
@@ -223,19 +229,20 @@ typename trie<T>::dfs_iterator trie<T>::dfs_iterator::operator++(int)
 
 /* -----------trie::trie_node----------- */
 
-template<typename T>
+  template<typename T>
 const std::vector<T>& trie<T>::trie_node::get_infos()
 {
   return infos;
 }
 
-template<typename T>
+  template<typename T>
 char trie<T>::trie_node::get_val()
 {
+  fprintf(stderr,"asdfasdlfkjasdlfkjasldkfj\n");
   return val;
 }
 
-template<typename T>
+  template<typename T>
 void trie<T>::trie_node::set_val(char _val)
 {
   val = _val;
