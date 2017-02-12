@@ -10,7 +10,7 @@ trie<T>::trie()
 {
   root = new trie_node();
   _end.it = NULL;
-  _start.it = root;
+  _begin.it = root;
 }
 
 template<typename T> 
@@ -49,7 +49,7 @@ typename trie<T>::iterator trie<T>::end()
 template<typename T>
 typename trie<T>::iterator trie<T>::start()
 {
-  return _start;
+  return _begin;
 }
 
 template<typename T>

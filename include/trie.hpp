@@ -109,12 +109,12 @@ public:
   trie();
   int insert(char *str, T info);
   iterator find(char *str);
-  trie<T>::iterator start();
+  trie<T>::iterator begin();
   trie<T>::iterator end();
 
 private:
+  iterator _begin;
   iterator _end;
-  iterator _start;
   int insert(trie_node *node, char *str, T info);
   void find(trie_node *node, char *str, iterator &it);
   trie_node* root;
