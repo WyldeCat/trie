@@ -7,8 +7,11 @@
 #include <stack>
 #include <algorithm>
 #include <string>
+#include <functional>
 
-template<typename T>
+#include "shared_stl_allocator.hpp"
+
+template<typename T, long key>
 class trie
 {
 
@@ -26,16 +29,17 @@ public:
     const std::vector<T>& get_infos();
     bool is_internal = false;
 
-    std::map<char,trie_internal_node> children;
+    std::map<char,trie_internal_node, std::less<char>, shared_stl_allocator<std::pair<char,trie_internal_node>,key> > children;
     char val = 0;
-    trie_node(){val='3';}
+
+    trie_node(){}
 
     std::vector<T> infos;
 
-    friend class trie<T>;
-    friend class trie<T>::iterator;
-    friend class trie<T>::bfs_iterator;
-    friend class trie<T>::dfs_iterator;
+    friend class trie<T, key>;
+    friend class trie<T, key>::iterator;
+    friend class trie<T, key>::bfs_iterator;
+    friend class trie<T, key>::dfs_iterator;
   };
 
   class trie_internal_node : public trie_node
@@ -68,7 +72,7 @@ public:
     iterator& operator++();    // Overloading prefix increment operator
     iterator  operator++(int); // Overloading postfix increment operator
 
-    friend class trie<T>;
+    friend class trie<T, key>;
   };
 
   class bfs_iterator: public iterator
@@ -119,8 +123,8 @@ public:
   trie();
   int insert(char *str, T info);
   iterator find(char *str);
-  trie<T>::iterator begin();
-  trie<T>::iterator end();
+  trie<T, key>::iterator begin();
+  trie<T, key>::iterator end();
 
 public:
   iterator _begin;
