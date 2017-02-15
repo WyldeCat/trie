@@ -33,6 +33,7 @@ int trie<T, key>::insert(trie_node* node, char *str, T info)
   }
 
   auto ret = node->children.find(val);
+
   if(ret == node->children.end())
   {
     node->children.insert(std::make_pair(val, trie_internal_node(node)));
@@ -238,7 +239,6 @@ const std::vector<T>& trie<T, key>::trie_node::get_infos()
 template<typename T, long key>
 char trie<T, key>::trie_node::get_val()
 {
-  fprintf(stderr,"asdfasdlfkjasdlfkjasldkfj\n");
   return val;
 }
 
