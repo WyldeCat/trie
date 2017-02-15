@@ -6,8 +6,8 @@
 #include "../include/trie.hpp"
 
 
-template<typename T, long key> 
-trie<T, key>::trie()
+template<typename T, long key1, long key2> 
+trie<T, key1, key2>::trie()
 {
   root = trie_node();
   _end.it = NULL;
@@ -15,14 +15,14 @@ trie<T, key>::trie()
 }
 
 
-template<typename T, long key> 
-int trie<T, key>::insert(char *str,T info)
+template<typename T, long key1, long key2> 
+int trie<T, key1, key2>::insert(char *str,T info)
 {
   return insert(&root, str, info);
 }
 
-template<typename T, long key> 
-int trie<T, key>::insert(trie_node* node, char *str, T info)
+template<typename T, long key1, long key2> 
+int trie<T, key1, key2>::insert(trie_node* node, char *str, T info)
 {
   char val = *str;    
 
@@ -36,39 +36,38 @@ int trie<T, key>::insert(trie_node* node, char *str, T info)
 
   if(ret == node->children.end())
   {
-    node->children.insert(std::make_pair(val, trie_internal_node(node)));
+    node->children.insert(std::make_pair(val,trie_node(val)));
     ret = node->children.find(val);
-    ret->second.set_val(val);
   }
 
   return insert(&ret->second, str+1, info);
 }
 
-template<typename T, long key> 
-typename trie<T, key>::iterator trie<T, key>::end()
+template<typename T, long key1, long key2> 
+typename trie<T, key1, key2>::iterator trie<T, key1, key2>::end()
 {
   return _end;
 }
 
-template<typename T, long key>
-typename trie<T, key>::iterator trie<T, key>::begin()
+template<typename T, long key1, long key2>
+typename trie<T, key1, key2>::iterator trie<T, key1, key2>::begin()
 {
   _begin.it = &root;
   return _begin;
 }
 
-template<typename T, long key>
-typename trie<T, key>::iterator trie<T, key>::find(char *str)
+template<typename T, long key1, long key2>
+typename trie<T, key1, key2>::iterator trie<T, key1, key2>::find(char *str)
 {
-  trie<T, key>::iterator it;
+  trie<T, key1, key2>::iterator it;
   it.caption = std::string(str);
   find(&root, str, it); 
   
   return it;
 }
 
-template<typename T, long key>
-void trie<T, key>::find(trie<T, key>::trie_node *node, char *str, trie<T, key>::iterator &it)
+template<typename T, long key1, long key2>
+void trie<T, key1, key2>::find(trie<T, key1, key2>::trie_node *node, char *str, trie<T, key1, key2>::iterator &it)
 {
   char val = *str;
   if(val == 0) 
@@ -80,50 +79,55 @@ void trie<T, key>::find(trie<T, key>::trie_node *node, char *str, trie<T, key>::
     it.it = NULL;
     it.caption = std::string();
   }
+  node->children[val].parent = node;
   find(&node->children[val], str+1, it);
 }
 
 /* -----------trie::iterator----------- */
 
-template<typename T, long key> trie<T, key>::iterator::iterator()
+template<typename T, long key1, long key2> 
+trie<T, key1, key2>::iterator::iterator()
 {
   it = NULL;
 }
 
-template<typename T, long key>
-const std::string& trie<T, key>::iterator::get_caption()
+template<typename T, long key1, long key2>
+const std::string& trie<T, key1, key2>::iterator::get_caption()
 {
   return this->caption;
-} /* -----------trie::bfs_iterator----------- */
+} 
 
-template<typename T, long key>
-const std::string& trie<T, key>::bfs_iterator::get_caption()
+/* -----------trie::bfs_iterator----------- */
+
+template<typename T, long key1, long key2>
+const std::string& trie<T, key1, key2>::bfs_iterator::get_caption()
 {
   this->caption = std::string();
   trie_node* node = this->it;
   
-  while(1)
+  while(node->val)
   {
-    if(!node->is_internal) break;
-    this->caption.push_back(node->get_val());
-    trie_internal_node *internal_node = (trie_internal_node *)node;
-    node = &internal_node->parent;
+    this->caption.push_back(node->val);
+    node = node->parent;
   }
-  if(!this->caption.empty())
+
+  if(!this->caption.empty()) 
     std::reverse(this->caption.begin(),this->caption.end());
 
   return this->caption;
 }
 
-template<typename T, long key> trie<T, key>::bfs_iterator::bfs_iterator():iterator(){}
-template<typename T, long key> trie<T, key>::bfs_iterator::bfs_iterator(const trie<T, key>::iterator &_it)
+template<typename T, long key1, long key2> 
+trie<T, key1, key2>::bfs_iterator::bfs_iterator():iterator(){}
+template<typename T, long key1, long key2> 
+trie<T, key1, key2>::bfs_iterator::bfs_iterator(const trie<T, key1, key2>::iterator &_it)
 {
   this->it = _it.it;
   queue.push(this->it);
 }
 
-template<typename T, long key> 
-typename trie<T, key>::bfs_iterator& trie<T, key>::bfs_iterator::operator=(const trie<T, key>::iterator &_it)
+template<typename T, long key1, long key2> 
+typename trie<T, key1, key2>::bfs_iterator& trie<T, key1, key2>::bfs_iterator::operator=(const trie<T, key1, key2>::iterator &_it)
 { 
   this->it = _it.it;
   while(!queue.empty()) queue.pop();
@@ -132,8 +136,8 @@ typename trie<T, key>::bfs_iterator& trie<T, key>::bfs_iterator::operator=(const
 }
 
 // prefix
-template<typename T, long key>
-typename trie<T, key>::bfs_iterator& trie<T, key>::bfs_iterator::operator++()
+template<typename T, long key1, long key2>
+typename trie<T, key1, key2>::bfs_iterator& trie<T, key1, key2>::bfs_iterator::operator++()
 {
   if(queue.empty())
   {
@@ -143,16 +147,26 @@ typename trie<T, key>::bfs_iterator& trie<T, key>::bfs_iterator::operator++()
 
   trie_node *front = queue.front();
   queue.pop();
-  for(auto &pair: front->children) 
-    queue.push(&pair.second);
+
+  int sz = front->children.size();
+
+  if(sz)
+  {
+    for(auto it = front->children.begin();it!=front->children.end(); ++it) 
+    {
+      (it->second).parent = front;
+      queue.push(&(it->second));
+      sz--; if(sz==0) break;
+    }
+  }
   this->it = queue.empty() ? NULL : queue.front();
 
   return *this;
 }
 
 // postfix
-template<typename T, long key>
-typename trie<T, key>::bfs_iterator trie<T, key>::bfs_iterator::operator++(int)
+  template<typename T, long key1, long key2>
+typename trie<T, key1, key2>::bfs_iterator trie<T, key1, key2>::bfs_iterator::operator++(int)
 {
   bfs_iterator temp = *this;
   ++*this;
@@ -161,16 +175,18 @@ typename trie<T, key>::bfs_iterator trie<T, key>::bfs_iterator::operator++(int)
 
 /* -----------trie::dfs_iterator----------- */
 
-template<typename T, long key> trie<T, key>::dfs_iterator::dfs_iterator():iterator(){}
-template<typename T, long key> trie<T, key>::dfs_iterator::dfs_iterator(const trie<T, key>::iterator &_it)
+template<typename T, long key1, long key2> 
+trie<T, key1, key2>::dfs_iterator::dfs_iterator():iterator(){}
+template<typename T, long key1, long key2> 
+trie<T, key1, key2>::dfs_iterator::dfs_iterator(const trie<T, key1, key2>::iterator &_it)
 {
   this->it = _it.it;
   this->caption = _it.caption;
   stack.push(std::make_pair(this->it,0));
 }
 
-template<typename T, long key> 
-typename trie<T, key>::dfs_iterator& trie<T, key>::dfs_iterator::operator=(const trie<T, key>::iterator &_it)
+template<typename T, long key1, long key2> 
+typename trie<T, key1, key2>::dfs_iterator& trie<T, key1, key2>::dfs_iterator::operator=(const trie<T, key1, key2>::iterator &_it)
 {
   this->it = _it.it;
   this->caption = _it.caption;
@@ -181,8 +197,8 @@ typename trie<T, key>::dfs_iterator& trie<T, key>::dfs_iterator::operator=(const
 }
 
 // prefix
-  template<typename T, long key>
-typename trie<T, key>::dfs_iterator& trie<T, key>::dfs_iterator::operator++()
+template<typename T, long key1, long key2>
+typename trie<T, key1, key2>::dfs_iterator& trie<T, key1, key2>::dfs_iterator::operator++()
 {
   if(stack.empty())
   {
@@ -197,7 +213,10 @@ typename trie<T, key>::dfs_iterator& trie<T, key>::dfs_iterator::operator++()
   stack.pop();
 
   for(auto it = top->children.rbegin(); it != top->children.rend(); ++it) 
+  {
+    (it->second).parent = top;
     stack.push(std::make_pair(&(it->second),level+1));
+  }
 
   if(top->children.empty() && !stack.empty()) 
   {
@@ -220,8 +239,8 @@ typename trie<T, key>::dfs_iterator& trie<T, key>::dfs_iterator::operator++()
 }
 
 // postfix
-  template<typename T, long key>
-typename trie<T, key>::dfs_iterator trie<T, key>::dfs_iterator::operator++(int)
+template<typename T, long key1, long key2>
+typename trie<T, key1, key2>::dfs_iterator trie<T, key1, key2>::dfs_iterator::operator++(int)
 {
   dfs_iterator temp = *this;
   ++*this;
@@ -230,20 +249,20 @@ typename trie<T, key>::dfs_iterator trie<T, key>::dfs_iterator::operator++(int)
 
 /* -----------trie::trie_node----------- */
 
-template<typename T, long key>
-const std::vector<T>& trie<T, key>::trie_node::get_infos()
+template<typename T, long key1, long key2>
+const std::vector<T, shared_stl_allocator<T, key2> >& trie<T, key1, key2>::trie_node::get_infos()
 {
   return infos;
 }
 
-template<typename T, long key>
-char trie<T, key>::trie_node::get_val()
+template<typename T, long key1, long key2>
+char trie<T, key1, key2>::trie_node::get_val()
 {
   return val;
 }
 
-template<typename T, long key>
-void trie<T, key>::trie_node::set_val(char _val)
+template<typename T, long key1, long key2>
+void trie<T, key1, key2>::trie_node::set_val(char _val)
 {
   val = _val;
 }

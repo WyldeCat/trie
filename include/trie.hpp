@@ -9,44 +9,44 @@
 #include <string>
 #include <functional>
 
+#include <sys/mman.h>
+#include <sys/shm.h>
+
 #include "shared_stl_allocator.hpp"
 
-template<typename T, long key>
+template<typename T, long key1, long key2>
 class trie
 {
 
 public: 
+  static void attach()
+  {
+    shared_stl_allocator<std::pair<char, trie_node>,key1>::attach();
+  }
   class iterator;
   class bfs_iterator;
   class dfs_iterator;
-  class trie_internal_node;
 
   class trie_node
   { 
   public:
     char get_val();
     void set_val(char _val);
-    const std::vector<T>& get_infos();
-    bool is_internal = false;
+    const std::vector<T, shared_stl_allocator<T, key2> >& get_infos();
 
-    std::map<char,trie_internal_node, std::less<char>, shared_stl_allocator<std::pair<char,trie_internal_node>,key> > children;
+    trie_node *parent;
+    std::map<char,trie_node, std::less<char>, shared_stl_allocator<std::pair<char,trie_node>,key1> > children;
     char val = 0;
 
-    trie_node(){}
+    trie_node() { }
+    trie_node(char _val):val(_val) { }
 
-    std::vector<T> infos;
+    std::vector<T, shared_stl_allocator<T, key2> > infos;
 
-    friend class trie<T, key>;
-    friend class trie<T, key>::iterator;
-    friend class trie<T, key>::bfs_iterator;
-    friend class trie<T, key>::dfs_iterator;
-  };
-
-  class trie_internal_node : public trie_node
-  {
-  public:
-    trie_internal_node(trie_node *_parent):parent(*_parent){ this->is_internal = true;}
-    trie_node &parent; 
+    friend class trie<T, key1, key2>;
+    friend class trie<T, key1, key2>::iterator;
+    friend class trie<T, key1, key2>::bfs_iterator;
+    friend class trie<T, key1, key2>::dfs_iterator;
   };
 
 public:
@@ -54,7 +54,7 @@ public:
   {
   public:
     trie_node* operator->()
-    {
+    { 
       return it;
     }
     iterator();
@@ -72,7 +72,7 @@ public:
     iterator& operator++();    // Overloading prefix increment operator
     iterator  operator++(int); // Overloading postfix increment operator
 
-    friend class trie<T, key>;
+    friend class trie<T, key1, key2>;
   };
 
   class bfs_iterator: public iterator
@@ -123,8 +123,8 @@ public:
   trie();
   int insert(char *str, T info);
   iterator find(char *str);
-  trie<T, key>::iterator begin();
-  trie<T, key>::iterator end();
+  trie<T, key1, key2>::iterator begin();
+  trie<T, key1, key2>::iterator end();
 
 public:
   iterator _begin;
