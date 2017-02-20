@@ -121,16 +121,20 @@ public:
 
 
   trie();
-  int insert(char *str, T info);
+  int insert(char *str, T &info);
   iterator find(char *str);
+  void findAll(char *str, std::vector<T*> &v);
   trie<T, key1, key2>::iterator begin();
   trie<T, key1, key2>::iterator end();
 
 public:
+  std::map<std::pair<trie_node*,char*>, bool> visit;
   iterator _begin;
   iterator _end;
-  int insert(trie_node *node, char *str, T info);
+  bool find_all_flag;
+  int insert(trie_node *node, char *str, T &info);
   void find(trie_node *node, char *str, iterator &it);
+  void findAll(trie_node *node, char *str, std::vector<T*> &v);
   trie_node root;
 };
 

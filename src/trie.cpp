@@ -16,24 +16,29 @@ trie<T, key1, key2>::trie()
 
 
 template<typename T, long key1, long key2> 
-int trie<T, key1, key2>::insert(char *str,T info)
+int trie<T, key1, key2>::insert(char *str,T &info)
 {
   return insert(&root, str, info);
 }
 
 template<typename T, long key1, long key2> 
-int trie<T, key1, key2>::insert(trie_node* node, char *str, T info)
+int trie<T, key1, key2>::insert(trie_node* node, char *str, T &info)
 {
   char val = *str;    
 
   if(val == 0)
   {
-    node->infos.push_back(info);
+    node->infos.push_back(T{});
+    for(int i=0;i<info.name.size();i++)
+      node->infos.back().name.push_back(info.name[i]);
+    for(int i=0;i<info.image.size();i++)
+      node->infos.back().image.push_back(info.image[i]);
+    for(int i=0;i<info._id.size();i++)
+      node->infos.back()._id.push_back(info._id[i]);
     return 1;
   }
 
   auto ret = node->children.find(val);
-
   if(ret == node->children.end())
   {
     node->children.insert(std::make_pair(val,trie_node(val)));
@@ -67,6 +72,14 @@ typename trie<T, key1, key2>::iterator trie<T, key1, key2>::find(char *str)
 }
 
 template<typename T, long key1, long key2>
+void trie<T, key1, key2>::findAll(char *str, std::vector<T*> &v)
+{
+  this->find_all_flag = 0;
+  visit.clear();
+  findAll(&root, str, v);
+}
+
+template<typename T, long key1, long key2>
 void trie<T, key1, key2>::find(trie<T, key1, key2>::trie_node *node, char *str, trie<T, key1, key2>::iterator &it)
 {
   char val = *str;
@@ -83,6 +96,48 @@ void trie<T, key1, key2>::find(trie<T, key1, key2>::trie_node *node, char *str, 
   find(&node->children[val], str+1, it);
 }
 
+template<typename T, long key1, long key2>
+void trie<T, key1, key2>::findAll(trie<T, key1, key2>::trie_node *node, char *str,std::vector<T*> &v)
+{
+  if(visit[std::make_pair(node,str)]) return;
+  visit[std::make_pair(node,str)] = true;
+  if(this->find_all_flag) return;
+
+  if(*str == 0) 
+  {
+    int sz = node->infos.size();
+    for(int i=0;i<sz;i++) {
+      if(std::find(v.begin(),v.end(),&node->infos[i]) != v.end()) continue;
+      v.push_back(&node->infos[i]);
+    }
+
+    if(v.size()>=5) find_all_flag = true;
+
+    sz = node->children.size();
+    auto it = node->children.begin();
+    for(int i=0;i<sz;i++)
+    {
+      if(this->find_all_flag) return;
+      findAll(&(it->second),str,v);
+      if(i!=sz-1) it++;
+    }
+    return;
+  }
+
+  if(node->children.find(*str) != node->children.end() && !find_all_flag)
+    findAll(&node->children[*str], str+1, v); 
+  
+
+  int sz = node->children.size();
+  auto it = node->children.begin();
+
+  for(int i=0;i<sz;i++)
+  {
+    findAll(&(it->second),str, v);
+    if(this->find_all_flag) return;
+    if(i!=sz-1) it++;
+  }
+}
 /* -----------trie::iterator----------- */
 
 template<typename T, long key1, long key2> 
